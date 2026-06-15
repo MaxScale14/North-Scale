@@ -1581,75 +1581,10 @@
   });
 
 })();
-
-/* ─── MODAL ─── */
-(function () {
-  var overlay = document.getElementById('project-modal');
-  var form    = document.getElementById('contact-form');
-  var success = document.getElementById('modal-success');
-
-  function openModal() {
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    overlay.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-
-  /* Open on every "Start a Project / Get Started" trigger */
-  document.querySelectorAll('.open-modal').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      openModal();
-    });
-  });
-
-  /* Close on overlay click */
-  overlay.addEventListener('click', function (e) {
-    if (e.target === overlay) closeModal();
-  });
-
-  /* Close button */
-  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
-
-  /* Escape key */
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
-  });
-
-  /* Form submit — Netlify Forms via fetch */
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    var btn = form.querySelector('.btn-submit');
-    btn.disabled = true;
-    btn.textContent = 'Sending…';
-
-    var data = new FormData(form);
-
-    fetch('/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(data).toString()
-    })
-    .then(function () {
-      form.classList.add('hide');
-      success.classList.add('show');
-    })
-    .catch(function (err) {
-      console.error('Form error:', err);
-      btn.disabled = false;
-      btn.textContent = 'Send Message';
-      alert('Something went wrong — please email us directly at northdigialwebb@gmail.com');
-    });
-  });
-})();
 </script>
 
-<!-- PROJECT MODAL -->
-<!-- Hidden Netlify form for bot detection -->
-<form name="contact" netlify netlify-honeypot="bot-field" hidden>
+<!-- PROJECT MODAL — must come before modal JS script -->
+<form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
   <input type="text" name="name" />
   <input type="email" name="email" />
   <input type="tel" name="phone" />
@@ -1662,14 +1597,14 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <button class="modal-close" id="modal-close-btn" aria-label="Close">&times;</button>
 
-    <div class="modal-form" id="modal-form-wrap">
+    <div id="modal-form-wrap">
       <p class="modal-eyebrow">Start a Project</p>
       <h2 id="modal-title">Tell us about<br>your project</h2>
       <p class="modal-sub">Fill this out and we'll get back to you within 24 hours — by email and phone.</p>
 
       <form name="contact" id="contact-form" data-netlify="true" netlify-honeypot="bot-field">
         <input type="hidden" name="form-name" value="contact" />
-        <p style="display:none;"><label>Don't fill this out: <input name="bot-field" /></label></p>
+        <p style="display:none;"><label>Skip: <input name="bot-field" /></label></p>
 
         <div class="form-row">
           <div class="form-group">
@@ -1688,7 +1623,7 @@
             <input type="tel" id="f-phone" name="phone" placeholder="(555) 000-0000" />
           </div>
           <div class="form-group">
-            <label for="f-company">Company / Project Name</label>
+            <label for="f-company">Company / Project</label>
             <input type="text" id="f-company" name="company" placeholder="Acme Inc." />
           </div>
         </div>
@@ -1716,10 +1651,76 @@
     <div class="modal-success" id="modal-success">
       <div class="success-icon">&#10003;</div>
       <h3>Message sent!</h3>
-      <p>Thanks for reaching out. We'll be in touch within 24 hours at the email and phone you provided.</p>
+      <p>We'll be in touch within 24 hours at the email and number you provided.</p>
     </div>
   </div>
 </div>
+
+<!-- Modal JS — runs after modal HTML is in the DOM -->
+<script>
+(function () {
+  var overlay = document.getElementById('project-modal');
+  var formWrap = document.getElementById('modal-form-wrap');
+  var form    = document.getElementById('contact-form');
+  var success = document.getElementById('modal-success');
+  var closeBtn = document.getElementById('modal-close-btn');
+
+  if (!overlay || !form) {
+    console.error('[NS] Modal elements not found');
+    return;
+  }
+
+  function openModal() {
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.open-modal').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      openModal();
+    });
+  });
+
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeModal();
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var submitBtn = form.querySelector('.btn-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(new FormData(form)).toString()
+    })
+    .then(function () {
+      formWrap.style.display = 'none';
+      success.classList.add('show');
+    })
+    .catch(function (err) {
+      console.error('[NS] Form submit error:', err);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message →';
+      alert('Something went wrong. Email us at northdigialwebb@gmail.com or call 973-619-5397.');
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
